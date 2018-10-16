@@ -1,43 +1,62 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class SiteContainer {
 
-    private String address;
-    private ArrayList<String> refs;
+    private Map<String, ArrayList<String>> links;
+    private Map<String, Double> rank;
 
     public SiteContainer(){
-        this.address = "";
-        this.refs = new ArrayList<>();
+        this.links = new HashMap<>();
     }
 
-    public SiteContainer(String address, ArrayList<String> refs){
-        this.address = address;
-        this.refs = refs;
+    public SiteContainer(HashMap<String, ArrayList<String>> links){
+        this.links = links;
     }
 
-    public void setAddress(String address){
-        this.address = address;
-    }
-
-    public String getAddress(){
-        return address;
-    }
-
-    public void setRefs(ArrayList<String> refs){
-        this.refs = refs;
-    }
-
-    public ArrayList<String> getRefs(){
-        return refs;
-    }
-
-    public void addRef(String ref){
-        if (!refs.contains(ref)) {
-            refs.add(ref);
+    public boolean isContainsKey(String key){
+        if (links.containsKey(key)){
+            return true;
+        }
+        else{
+            return false;
         }
     }
 
-    public String getRefByInd(int ind){
-        return refs.get(ind);
+    public boolean isContainsLinkByKey(String key, String link){
+        if (links.get(key).contains(link)){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    public void addKey(String key){
+        links.put(key, new ArrayList<>());
+    }
+
+    public void addLinkByKey(String key, String link){
+        links.get(key).add(link);
+    }
+
+    public ArrayList<String> getLinksByKey(String key){
+        return links.get(key);
+    }
+
+    public Set getMapOfLinks(){
+        return links.entrySet();
+    }
+
+    public void rankOfPages(){
+        rank = new HashMap<>();
+        double d = 0.85;
+        double PRnew = 0;
+        for(String key : links.keySet()){
+            rank.put(key, 1.0);
+        }
+        //TODO
     }
 }
