@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class SiteContainer {
 
@@ -46,17 +45,38 @@ public class SiteContainer {
         return links.get(key);
     }
 
-    public Set getMapOfLinks(){
-        return links.entrySet();
+    public Map<String, ArrayList<String>> getMapOfLinks(){
+        return links;
     }
 
-    public void rankOfPages(){
+    public void rankOfPages(int numOfIter){
         rank = new HashMap<>();
         double d = 0.85;
-        double PRnew = 0;
-        for(String key : links.keySet()){
-            rank.put(key, 1.0);
+        double PRnew;
+        for (int i = 0; i < numOfIter; i++) {
+            for (String key : links.keySet()) {
+                rank.put(key, 1.0);
+            }
+            for (String link : links.keySet()) {
+                PRnew = 0;
+                for (String key : links.keySet()) {
+                    if (isContainsLinkByKey(key, link)) {
+                        PRnew = PRnew + rank.get(link) / links.get(link).size();
+                    }
+                }
+                PRnew = (1 - d) + d * PRnew;
+                rank.put(link, PRnew);
+            }
         }
-        //TODO
+        //return rank;
+        // System.out.println(rank.toString());
+    }
+
+    public String toStr(){
+        String res = "";
+        for (String key: rank.keySet()){
+            res = res + key + " --- " + rank.get(key) + "\n";
+        }
+        return res;
     }
 }

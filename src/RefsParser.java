@@ -13,19 +13,15 @@ public class RefsParser {
 
     private SiteContainer sc;
     private String domain;
-    //private ArrayList<SiteContainer> sc;
-    //private String startAdr
 
     public RefsParser(){
         this.domain = "";
         this.sc = new SiteContainer();
-        //this.startAdr = "";
     }
 
     public RefsParser(SiteContainer sc, String domain){
         this.sc = sc;
         this.domain = domain;
-        //this.startAdr = startAdr;
     }
 
     public void setSC(SiteContainer sc){
@@ -50,7 +46,7 @@ public class RefsParser {
         return m.matches();
     }
 
-    private String getMainPage(String address){
+    public String getMainPage(String address){
         try {
             return new URI(address).getHost().replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)","");
         } catch (URISyntaxException e) {
@@ -60,31 +56,33 @@ public class RefsParser {
     }
 
     public void parse(String address){
-        if (address.trim().charAt(0) == '/'){
-            address = domain + address;
-        }
         if (address.trim().charAt(address.length() - 1) != '/'){
             address = address + "/";
         }
-        if (!sc.isContainsKey(address) && !address.contains("javascript:void(0);")
-                && !address.contains(".png") && !address.contains(".jpg") && !address.contains(".txt") && !address.contains(".gif")
-                && getMainPage("http://" + address).equals(domain)) {
+        if (!sc.isContainsKey(address)) {
             sc.addKey(address);
             try {
                 System.out.println(address);
                 Document doc = Jsoup.connect("http://" + address).get();
                 Elements link = doc.select("a");
                 for (Element e : link) {
-                    if (!e.attr("href").contains("@") && !e.attr("href").contains("#")) {
-                        if (!sc.isContainsLinkByKey(address, e.attr("href"))) {
-                            sc.addLinkByKey(address, e.attr("href"));
+                    String elem = e.attr("href").replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)", "");
+                    if (elem.length() >= 2 && elem.charAt(0) == '/' && elem.charAt(1) == '/'){
+                        elem = elem.substring(2);
+                    }
+                    else if (elem.length() >= 1 && elem.charAt(0) == '/'){
+                        elem = domain + elem;
+                    }
+                    if (elem.length() != 0 && !elem.contains("@") && !elem.contains("#") && !elem.contains("javascript:") && !elem.contains("?")
+                            && !elem.contains(".png") && !elem.contains(".jpg") && !elem.contains(".txt") && !elem.contains(".gif")
+                            && getMainPage("http://" + elem) != null && getMainPage("http://" + elem).equals(domain)) {
+                        if (!sc.isContainsLinkByKey(address, elem)) {
+                            sc.addLinkByKey(address, elem);
                         }
                     }
                 }
                 for (String str : sc.getLinksByKey(address)) {
-                    if (str != "") {
-                        parse(str.replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)", ""));
-                    }
+                        parse(str);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -101,7 +99,10 @@ public class RefsParser {
         //System.out.println(new URI("https://www.kali.org/").getHost());
         p.setDomain(p.getMainPage("https://gri-software.com/ru/"));
         //System.out.println(p.getMainPage("https://www.kali.org/"));
-        p.parse("gri-software.com/ru/");
+        p.parse("gri-software.com");
+        //System.out.println(p.getSC().getMapOfLinks().toString());
+        p.getSC().rankOfPages(100);
+        System.out.println(p.getSC().toStr());
         //System.out.println("//vk.com/lostfilmtv_official".replaceFirst("^(http[s]?://www\\.|http[s]?://|www\\.)",""));
     }
 }
